@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// ---------------------------
-/// 基础 ERC20 Token
+/// Basic ERC20 Token
 /// ---------------------------
 contract CustomToken is ERC20 {
     constructor(
@@ -19,19 +19,19 @@ contract CustomToken is ERC20 {
 }
 
 /// ---------------------------
-/// Token 工厂合约
+/// Token Factory Contract
 /// ---------------------------
 contract TokenFactory is Ownable {
-    /// 平台钱包（收取手续费用）
+    /// Platform wallet (receives service fee)
     address payable public platformWallet;
 
-    /// 默认链上部署手续费（仅 userDeploy 生效）
+    /// Default on-chain deployment fee (applies only to userDeploy)
     uint256 public defaultDeploymentFee = 0.01 ether;
 
-    /// 记录用户发行的 Token 列表
+    /// Records the list of tokens issued by each user
     mapping(address => address[]) public userTokens;
 
-    /// 事件：新 Token 创建
+    /// Event: New Token Created
     event TokenCreated(
         address indexed tokenAddress,
         string name,
@@ -46,13 +46,13 @@ contract TokenFactory is Ownable {
     }
 
     // -------------------------------------------------
-    // 模式一：平台代部署 (Platform Deploy)
+    // Mode 1: Platform Deployment (Platform Deploy)
     // -------------------------------------------------
     /**
-     * @dev 平台调用，用户链下用法币支付。
-     * - onlyOwner: 仅限平台钱包调用
-     * - Gas 由平台承担
-     * - 不涉及链上收费
+     * @dev Called by platform; user pays off-chain (fiat).
+     * - onlyOwner: can only be called by the platform wallet
+     * - Gas is paid by the platform
+     * - No on-chain fee involved
      */
     function platformDeploy(
         string memory name_,
@@ -71,12 +71,12 @@ contract TokenFactory is Ownable {
     }
 
     // -------------------------------------------------
-    // 模式二：用户自助部署 (User Deploy)
+    // Mode 2: User Self-Deployment (User Deploy)
     // -------------------------------------------------
     /**
-     * @dev 用户自己部署，支付链上费用。
-     * - 用户通过 msg.value 支付
-     * - 部分/全部费用转给平台钱包
+     * @dev User deploys token and pays on-chain fees.
+     * - User pays via msg.value
+     * - Part/all deployment fee sent to platform wallet
      */
     function userDeploy(
         string memory name_,
@@ -85,12 +85,12 @@ contract TokenFactory is Ownable {
     ) external payable returns (address) {
         require(msg.value >= defaultDeploymentFee, "Insufficient fee");
 
-        // 部署 Token，初始 Token 全部 mint 给用户
+        // Deploy token; all initial tokens minted to user
         CustomToken token = new CustomToken(name_, symbol_, initialSupply_, msg.sender);
 
         userTokens[msg.sender].push(address(token));
 
-        // 平台收取部署费用 (这里简单写成全额给平台)
+        // Transfer deployment fee to platform (currently full amount)
         (bool sent, ) = platformWallet.call{value: msg.value}("");
         require(sent, "Fee transfer failed");
 
@@ -99,21 +99,21 @@ contract TokenFactory is Ownable {
     }
 
     // -------------------------------------------------
-    // 管理员操作
+    // Admin Operations
     // -------------------------------------------------
 
-    /// 设置新的平台钱包
+    /// Set new platform wallet
     function setPlatformWallet(address payable newWallet) external onlyOwner {
         require(newWallet != address(0), "Invalid wallet");
         platformWallet = newWallet;
     }
 
-    /// 设置链上部署手续费
+    /// Set deployment fee
     function setDeploymentFee(uint256 newFee) external onlyOwner {
         defaultDeploymentFee = newFee;
     }
 
-    /// 查询某用户发行的所有 Token
+    /// Query all tokens deployed by a user
     function getUserTokens(address user) external view returns (address[] memory) {
         return userTokens[user];
     }

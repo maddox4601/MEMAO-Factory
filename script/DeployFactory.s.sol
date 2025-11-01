@@ -6,23 +6,21 @@ import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
 contract DeployFactory is Script {
-    function run() external {
-        // 从环境变量读取部署者私钥
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    function run(address platformWallet) external {
+        // Read platform wallet address from command-line argument
+        // Private key is passed via the --private-key parameter
+        
+        // Start broadcast (private key passed via --private-key)
+        vm.startBroadcast();
 
-        // 平台钱包地址（收取部署手续费的地址）
-        address payable platformWallet = payable(vm.envAddress("PLATFORM_WALLET"));
+        // Deploy TokenFactory
+        TokenFactory factory = new TokenFactory(payable(platformWallet));
 
-        // 启动广播
-        vm.startBroadcast(deployerPrivateKey);
-
-        // 部署 TokenFactory
-        TokenFactory factory = new TokenFactory(platformWallet);
-
-        // 停止广播
+        // Stop broadcast
         vm.stopBroadcast();
 
-        // 输出部署后的合约地址
+        // Output deployed contract address
         console.log("TokenFactory deployed at:", address(factory));
+        console.log("Platform wallet set to:", platformWallet);
     }
 }

@@ -1,66 +1,105 @@
-## Foundry
+# MEMAO Token Factory
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is the open-source Factory contract used by the MEMAO Platform to deploy ERC20 tokens.
 
-Foundry consists of:
+---
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Project Structure
 
-## Documentation
+```text
+MEMAO-Factory/
+├── lib/                  # External dependencies (e.g., OpenZeppelin)
+├── src/
+│   └── TokenFactory.sol  # Factory contract
+├── test/                 # Optional tests
+├── foundry.toml          # Foundry configuration
+├── .gitignore
+└── README.md
+```
 
-https://book.getfoundry.sh/
+---
+
+## Prerequisites
+
+- Foundry installed — https://book.getfoundry.sh/
+- Ethereum RPC provider (Infura / Alchemy / local node)
+- Wallet funded with ETH for deployment
+
+---
 
 ## Usage
 
-### Build
+### 1. Clone repository
 
-```shell
-$ forge build
+```bash
+git clone https://github.com/<your-username>/MEMAO-Factory.git
+cd MEMAO-Factory
 ```
 
-### Test
+### 2. Compile
 
-```shell
-$ forge test
+```bash
+forge build
 ```
 
-### Format
+### 3. Deploy factory contract
 
-```shell
-$ forge fmt
+Before deploying, ensure:
+
+- **RPC_URL** – RPC endpoint  
+- **PRIVATE_KEY** – deployer private key  
+- **PLATFORM_WALLET_ADDRESS** – address to collect deployment fees  
+
+> ✅ Recommended: Use environment variables
+
+```bash
+export RPC_URL="https://sepolia.infura.io/v3/YOUR_PROJECT_ID"
+export PRIVATE_KEY="0xabc...."
+export PLATFORM_WALLET_ADDRESS="0xPlatformWallet"
 ```
 
-### Gas Snapshots
+#### Deploy
 
-```shell
-$ forge snapshot
+```bash
+forge script script/DeployFactory.s.sol:DeployFactory \
+  --rpc-url $RPC_URL \
+  --private-key $PRIVATE_KEY \
+  --sig "run(address)" \
+  $PLATFORM_WALLET_ADDRESS \
+  --broadcast
 ```
 
-### Anvil
+#### RPC Providers
 
-```shell
-$ anvil
+- Infura — https://infura.io
+- Alchemy — https://alchemy.com
+- Local — http://localhost:8545 *(Hardhat/Anvil/Ganache)*
+
+#### Example
+
+```bash
+forge script script/DeployFactory.s.sol:DeployFactory \
+  --rpc-url https://sepolia.infura.io/v3/your-id \
+  --private-key 0xabc123... \
+  --sig "run(address)" \
+  0x742d35Cc6634C0532925a3b8Dc9F1a5C6C7B8A2A \
+  --broadcast
 ```
 
-### Deploy
+> ⚠️ **Security Warning**  
+> Never commit your private key or expose it publicly.
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+---
 
-### Cast
+### 4. Create ERC20 tokens
 
-```shell
-$ cast <subcommand>
-```
+The factory supports:
 
-### Help
+- `platformDeploy(...)` — platform-managed token deployment  
+- `userDeploy(...)` — self-service token creation (fee required)  
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+---
+
+## License
+
+MIT License

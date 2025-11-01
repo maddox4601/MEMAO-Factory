@@ -1,14 +1,16 @@
-# Compiler files
-cache/
+# Node.js 
+node_modules/
+
+# Foundry / Solidity 
 out/
+.cache/
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
 
-# Docs
-docs/
+.DS_Store
 
-# Dotenv file
 .env
+.env.local
+.env.*.local
+
+# lib/forge-std/
+# lib/openzeppelin-contracts/
